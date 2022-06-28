@@ -21,6 +21,9 @@ import send_message_conversation as SendMessageConversation
 
 ADMIN_IDS = {929722187, 661745675}  # Abdullah Ahmed
 
+print("Bot started")
+updater.start_polling()
+
 
 def handleAnyMessage(update: Update, context: CallbackContext):
     print(update.message.from_user)
@@ -171,6 +174,4 @@ def message(update: Update, context: CallbackContext):
 message_handler = MessageHandler(Filters.all, message)
 dispatcher.add_handler(message_handler)
 
-print("Bot started")
-updater.start_polling()
 updater.idle()
