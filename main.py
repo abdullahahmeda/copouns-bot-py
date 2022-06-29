@@ -47,10 +47,11 @@ dispatcher.add_handler(all_handler, -99)
 
 
 def start(update: Update, context: CallbackContext):
+    visible_words = [k for k, v in state.getWords().items() if v["visible"] == True]
     context.bot.send_message(
         update.effective_chat.id,
         constants.Messages.start,
-        reply_markup=ReplyKeyboardMarkup(list(chunk(list(state.getWords().keys()), 3))),
+        reply_markup=ReplyKeyboardMarkup(list(chunk(visible_words, 3))),
     )
 
 
@@ -59,10 +60,11 @@ dispatcher.add_handler(start_handler)
 
 
 def list_all(update: Update, context: CallbackContext):
+    visible_words = [k for k, v in state.getWords().items() if v["visible"] == True]
     context.bot.send_message(
         update.effective_chat.id,
         constants.Messages.list_all,
-        reply_markup=ReplyKeyboardMarkup(list(chunk(list(state.getWords().keys()), 3))),
+        reply_markup=ReplyKeyboardMarkup(list(chunk(visible_words, 3))),
     )
 
 
@@ -168,7 +170,7 @@ def message(update: Update, context: CallbackContext):
         )
         return
 
-    context.bot.send_message(update.effective_chat.id, words[message])
+    context.bot.send_message(update.effective_chat.id, words[message]["message"])
 
 
 message_handler = MessageHandler(Filters.all, message)

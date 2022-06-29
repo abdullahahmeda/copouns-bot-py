@@ -35,6 +35,7 @@ cursor.execute(
     """
 CREATE TABLE IF NOT EXISTS words (
   `word` VARCHAR(255) PRIMARY KEY,
+  `visible` BOOL NOT NULL DEFAULT 1,
   `message_id` INT(11),
   FOREIGN KEY (`message_id`) REFERENCES `messages` (`id`) ON DELETE SET NULL
 )
@@ -50,12 +51,12 @@ def getWords():
     cursor = connection.cursor()
     cursor.execute(
         """
-    SELECT words.word, messages.message FROM words LEFT JOIN messages ON words.message_id = messages.id
+    SELECT words.word, words.visible, messages.message FROM words LEFT JOIN messages ON words.message_id = messages.id
     """
     )
     a = {}
-    for (word, message) in cursor:
-        a[word] = message
+    for (word, visible, message) in cursor:
+        a[word] = {"message": message, "visible": bool(int(visible))}
     cursor.close()
     connection.close()
     return a
