@@ -15,5 +15,3 @@ def getWords():
 def updateWords():
     global words
     words = getWordsFromDb()
-    print("new_words")
-    print(words)

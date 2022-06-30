@@ -48,6 +48,10 @@ dispatcher.add_handler(all_handler, -99)
 
 def start(update: Update, context: CallbackContext):
     visible_words = [k for k, v in state.getWords().items() if v["visible"] == True]
+    if len(visible_words) > 90:
+        visible_words = visible_words[:90]
+        context.user_data["page"] = 1
+        visible_words.append(constants.Messages.next_page)
     context.bot.send_message(
         update.effective_chat.id,
         constants.Messages.start,
@@ -61,6 +65,10 @@ dispatcher.add_handler(start_handler)
 
 def list_all(update: Update, context: CallbackContext):
     visible_words = [k for k, v in state.getWords().items() if v["visible"] == True]
+    if len(visible_words) > 90:
+        visible_words = visible_words[:90]
+        context.user_data["page"] = 1
+        visible_words.append("الصفحة التالية ⏭")
     context.bot.send_message(
         update.effective_chat.id,
         constants.Messages.list_all,
@@ -156,6 +164,52 @@ def updateWords(update: Update, context: CallbackContext):
 
 update_words_handler = MessageHandler(Filters.regex("تحديث الأقسام"), updateWords)
 dispatcher.add_handler(update_words_handler, -1)
+
+
+def nextPage(update: Update, context: CallbackContext):
+    all_visible_words = [k for k, v in state.getWords().items() if v["visible"] == True]
+    visible_words = all_visible_words
+    if len(visible_words) > 90:
+        page = context.user_data.get("page", 1) + 1
+        context.user_data["page"] = page
+        visible_words = visible_words[(page - 1) * 90 : page * 90]
+        visible_words.append(constants.Messages.prev_page)
+        if page * 90 < len(all_visible_words):
+            visible_words.append(constants.Messages.next_page)
+    context.bot.send_message(
+        update.effective_chat.id,
+        "أكود أخرى",
+        reply_markup=ReplyKeyboardMarkup(list(chunk(visible_words, 3))),
+    )
+
+
+next_page_handler = MessageHandler(
+    Filters.regex(constants.Messages.next_page), nextPage
+)
+dispatcher.add_handler(next_page_handler)
+
+
+def prevPage(update: Update, context: CallbackContext):
+    all_visible_words = [k for k, v in state.getWords().items() if v["visible"] == True]
+    visible_words = all_visible_words
+    if len(visible_words) > 90:
+        page = context.user_data.get("page", 2) - 1
+        context.user_data["page"] = page
+        visible_words = visible_words[(page - 1) * 90 : page * 90]
+        if page > 1:
+            visible_words.append(constants.Messages.prev_page)
+        visible_words.append(constants.Messages.next_page)
+    context.bot.send_message(
+        update.effective_chat.id,
+        "أكود أخرى",
+        reply_markup=ReplyKeyboardMarkup(list(chunk(visible_words, 3))),
+    )
+
+
+prev_page_handler = MessageHandler(
+    Filters.regex(constants.Messages.prev_page), prevPage
+)
+dispatcher.add_handler(prev_page_handler)
 
 
 def message(update: Update, context: CallbackContext):

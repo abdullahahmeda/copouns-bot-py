@@ -23,6 +23,9 @@ class Messages:
 
     mode_cancelled = "تم الخروج من الوضع الحالي"
 
+    prev_page = 'الصفحة السابقة ⏮'
+    next_page = "الصفحة التالية ⏭"
+
 
 class BotModes:
     normal = "normal"
