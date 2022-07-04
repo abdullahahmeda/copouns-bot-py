@@ -23,8 +23,15 @@ class Messages:
 
     mode_cancelled = "تم الخروج من الوضع الحالي"
 
-    prev_page = 'الصفحة السابقة ⏮'
+    prev_page = "الصفحة السابقة ⏮"
     next_page = "الصفحة التالية ⏭"
+
+    edit_command_message = "تعديل رسالة لأمر"
+    choose_command_to_change_message = "اختر الأمر المراد تعديل رسالته"
+    enter_new_command_message = "أرسل الرسالة الجديدة للأمر"
+    command_message_changed = "تم تحديث الرسالة بنجاح"
+
+    command_does_not_exist = "هذا الأمر غير موجود"
 
 
 class BotModes:
@@ -33,8 +40,17 @@ class BotModes:
 
 
 class Markups:
-    admin = ReplyKeyboardMarkup([["إرسال رسالة عامة لكل المشتركين"], ["تحديث الأقسام"]])
+    admin = ReplyKeyboardMarkup(
+        [
+            ["إرسال رسالة عامة لكل المشتركين"],
+            ["تحديث الأقسام"],
+            [Messages().edit_command_message],
+        ]
+    )
 
 
 class ConversationsStates:
     RECEIVED_MESSAGE = 0
+
+    CHOOSED_COMMAND = 1
+    RECEIVED_COMMAND_MESSAGE = 2

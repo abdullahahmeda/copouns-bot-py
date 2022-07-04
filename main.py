@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from bot import updater, dispatcher
-from telegram import Update, ReplyKeyboardRemove, ReplyKeyboardMarkup
+from telegram import Update, ReplyKeyboardRemove, ReplyKeyboardMarkup, ParseMode
 from telegram.ext import (
     CallbackContext,
     CommandHandler,
@@ -18,6 +18,7 @@ from mysql.connector import IntegrityError
 import state
 from utils import chunk
 import send_message_conversation as SendMessageConversation
+import edit_command_message_conversation as EditCommandMessageConversation
 
 ADMIN_IDS = {929722187, 661745675}  # Abdullah Ahmed
 
@@ -47,6 +48,7 @@ dispatcher.add_handler(all_handler, -99)
 
 
 def start(update: Update, context: CallbackContext):
+    commands_messages = state.getCommandsMessages()
     visible_words = [k for k, v in state.getWords().items() if v["visible"] == True]
     if len(visible_words) > 90:
         visible_words = visible_words[:90]
@@ -54,8 +56,9 @@ def start(update: Update, context: CallbackContext):
         visible_words.append(constants.Messages.next_page)
     context.bot.send_message(
         update.effective_chat.id,
-        constants.Messages.start,
+        commands_messages["start"],
         reply_markup=ReplyKeyboardMarkup(list(chunk(visible_words, 3))),
+        parse_mode=ParseMode.MARKDOWN_V2,
     )
 
 
@@ -64,6 +67,7 @@ dispatcher.add_handler(start_handler)
 
 
 def list_all(update: Update, context: CallbackContext):
+    commands_messages = state.getCommandsMessages()
     visible_words = [k for k, v in state.getWords().items() if v["visible"] == True]
     if len(visible_words) > 90:
         visible_words = visible_words[:90]
@@ -71,13 +75,62 @@ def list_all(update: Update, context: CallbackContext):
         visible_words.append("الصفحة التالية ⏭")
     context.bot.send_message(
         update.effective_chat.id,
-        constants.Messages.list_all,
+        commands_messages["list"],
         reply_markup=ReplyKeyboardMarkup(list(chunk(visible_words, 3))),
+        parse_mode=ParseMode.MARKDOWN_V2,
     )
 
 
 list_all_handler = CommandHandler("list", list_all)
 dispatcher.add_handler(list_all_handler)
+
+
+def cancel(update: Update, context: CallbackContext):
+    context.bot.send_message(
+        update.effective_chat.id,
+        constants.Messages.send_message_cancelled,
+        reply_markup=constants.Markups.admin,
+    )
+    raise DispatcherHandlerStop(ConversationHandler.END)
+
+
+def conversationFallback(update: Update, context: CallbackContext):
+    context.bot.send_message(
+        update.effective_chat.id,
+        constants.Messages.mode_cancelled,
+        reply_markup=constants.Markups.admin,
+    )
+    return ConversationHandler.END
+
+
+edit_command_message_conversation_handler = ConversationHandler(
+    [
+        MessageHandler(
+            Filters.regex(constants.Messages.edit_command_message),
+            EditCommandMessageConversation.start,
+        )
+    ],
+    {
+        constants.ConversationsStates.CHOOSED_COMMAND: [
+            MessageHandler(
+                Filters.all & ~Filters.command,
+                EditCommandMessageConversation.choosedComamnd,
+            ),
+        ],
+        constants.ConversationsStates.RECEIVED_COMMAND_MESSAGE: [
+            MessageHandler(
+                Filters.all & ~Filters.command("cancel"),
+                EditCommandMessageConversation.receivedMessage,
+            )
+        ],
+    },
+    [
+        CommandHandler("cancel", cancel),
+        MessageHandler(Filters.all, conversationFallback),
+    ],
+)
+
+dispatcher.add_handler(edit_command_message_conversation_handler, -1)
 
 
 def admin(update: Update, context: CallbackContext):
@@ -126,13 +179,6 @@ normal_handler = CommandHandler("normal", normal)
 dispatcher.add_handler(normal_handler, -1)
 
 
-def conversationFallback(update: Update, context: CallbackContext):
-    context.bot.send_message(
-        update.effective_chat.id, constants.Messages.mode_cancelled
-    )
-    return ConversationHandler.END
-
-
 send_message_conversation_handler = ConversationHandler(
     [
         MessageHandler(
@@ -142,14 +188,16 @@ send_message_conversation_handler = ConversationHandler(
     ],
     {
         constants.ConversationsStates.RECEIVED_MESSAGE: [
-            CommandHandler("cancel", SendMessageConversation.cancel),
             MessageHandler(
-                Filters.all,
+                Filters.all & ~Filters.command,
                 SendMessageConversation.receivedMessage,
             ),
         ]
     },
-    [MessageHandler(Filters.all, conversationFallback)],
+    [
+        CommandHandler("cancel", cancel),
+        MessageHandler(Filters.all, conversationFallback),
+    ],
 )
 dispatcher.add_handler(send_message_conversation_handler, -1)
 
@@ -223,8 +271,14 @@ def message(update: Update, context: CallbackContext):
             reply_markup=ReplyKeyboardRemove(),
         )
         return
-
-    context.bot.send_message(update.effective_chat.id, words[message]["message"])
+    try:
+        db.incrementTimesUsed(words[message]["id"])
+    except Exception as error:
+        print("couldn't increment times used")
+        print(words[message])
+        print(error)
+    for word in words[message]["messages"]:
+        context.bot.send_message(update.effective_chat.id, word)
 
 
 message_handler = MessageHandler(Filters.all, message)

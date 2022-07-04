@@ -26,11 +26,6 @@ def start(update: Update, context: CallbackContext):
     raise DispatcherHandlerStop(ConversationsStates.RECEIVED_MESSAGE)
 
 
-def cancel(update: Update, context: CallbackContext):
-    context.bot.send_message(update.effective_chat.id, Messages.send_message_cancelled)
-    raise DispatcherHandlerStop(ConversationHandler.END)
-
-
 def receivedMessage(update: Update, context: CallbackContext):
     if context.user_data["mode"] != "admin":
         return
