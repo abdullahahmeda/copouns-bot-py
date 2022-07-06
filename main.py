@@ -182,7 +182,7 @@ dispatcher.add_handler(normal_handler, -1)
 send_message_conversation_handler = ConversationHandler(
     [
         MessageHandler(
-            Filters.regex("إرسال رسالة عامة لكل المشتركين"),
+            Filters.regex(constants.Messages.send_public_message),
             SendMessageConversation.start,
         )
     ],
@@ -210,7 +210,9 @@ def updateWords(update: Update, context: CallbackContext):
     raise DispatcherHandlerStop()
 
 
-update_words_handler = MessageHandler(Filters.regex("تحديث الأقسام"), updateWords)
+update_words_handler = MessageHandler(
+    Filters.regex(constants.Messages.update_words), updateWords
+)
 dispatcher.add_handler(update_words_handler, -1)
 
 
@@ -226,7 +228,7 @@ def nextPage(update: Update, context: CallbackContext):
             visible_words.append(constants.Messages.next_page)
     context.bot.send_message(
         update.effective_chat.id,
-        "أكود أخرى",
+        "أكواد أخرى",
         reply_markup=ReplyKeyboardMarkup(list(chunk(visible_words, 3))),
     )
 
@@ -249,7 +251,7 @@ def prevPage(update: Update, context: CallbackContext):
         visible_words.append(constants.Messages.next_page)
     context.bot.send_message(
         update.effective_chat.id,
-        "أكود أخرى",
+        "أكواد أخرى",
         reply_markup=ReplyKeyboardMarkup(list(chunk(visible_words, 3))),
     )
 

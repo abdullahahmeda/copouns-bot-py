@@ -6,16 +6,20 @@ class Messages:
 هذا البوت يقوم بعرض أكود الخصومات للمتاجر.
 """
 
-    list_all = "قم باختيار القسم"
+    list_all = "قم باختيار المتجر"
 
     switched_to_admin = "تم التحويل إلى وضع الأدمن"
     switched_to_normal = "تم التحويل إلى الوضع العادي"
     already_in_mode = "أنت في هذا الوضع بالفعل"
 
+    send_public_message = "إرسال رسالة عامة لكل المشتركين"
+
+    update_words = "تحديث المتاجر"
+
     word_not_found = """هذا القسم غير موجود في قاعدة البيانات
 يمكنك اختيار قسم من الأقسام المتاحة، أو جرب كتابة قسم آخر."""
 
-    words_updated = "تم تحديث الأقسام بنجاح"
+    words_updated = "تم تحديث المتاجر بنجاح"
 
     enter_message = "قم بكتابة الرسالة المراد إرسالها "
     send_message_cancelled = "تم إلغاء وضع إرسال الرسالة"
@@ -42,9 +46,9 @@ class BotModes:
 class Markups:
     admin = ReplyKeyboardMarkup(
         [
-            ["إرسال رسالة عامة لكل المشتركين"],
-            ["تحديث الأقسام"],
-            [Messages().edit_command_message],
+            [Messages.send_public_message],
+            [Messages.update_words],
+            [Messages.edit_command_message],
         ]
     )
 

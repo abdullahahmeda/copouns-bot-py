@@ -29,9 +29,9 @@ CREATE TABLE IF NOT EXISTS `words` (
   `word` VARCHAR(255) UNIQUE NOT NULL,
   `visible` BOOL NOT NULL DEFAULT 1,
   `order` INT(11),
-  `times_used` INT(11) NOT NULL DEFAULT 0
-#  `synonym_id` INT(11),
-#  FOREIGN KEY (`synonym_id`) REFERENCES `words` (`id`) ON DELETE CASCADE
+  `times_used` INT(11) NOT NULL DEFAULT 0,
+  `synonym_for` INT(11),
+  FOREIGN KEY (`synonym_for`) REFERENCES `words` (`id`) ON DELETE CASCADE
 )
 """
 )
@@ -82,7 +82,7 @@ def getWords():
     cursor = connection.cursor()
     cursor.execute(
         """
-    SELECT words.id, words.word, words.visible, messages.message FROM words INNER JOIN messages ON words.id = messages.word_id ORDER BY words.order, messages.order
+    SELECT words.id, words.word, words.visible, messages.message FROM words INNER JOIN messages ON (words.id = messages.word_id OR words.synonym_for = messages.word_id) ORDER BY words.order, messages.order
     """
     )
     a = {}
